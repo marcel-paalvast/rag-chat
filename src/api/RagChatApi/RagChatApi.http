@@ -1,0 +1,54 @@
+# Sample requests
+# Use in Visual Studio Code with REST Client extension
+# Some functionality is not supported in Visual Studio
+@host =  http://localhost:7286/api
+
+### Get all articles
+GET {{host}}/articles
+Content-Type: application/json
+
+### Create a new article with file upload
+POST {{host}}/articles
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="category"
+
+sample
+--boundary
+Content-Disposition: form-data; name="file"; filename="sample.md"
+Content-Type: text/markdown
+
+This is a sample markdown file
+--boundary--
+
+### Delete an article
+DELETE {{host}}/articles/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+### Get all assistants
+GET {{host}}/assistants
+Content-Type: application/json
+
+### Get all assistants of category
+@category=My category
+GET {{host}}/assistants?category={{category}}
+Content-Type: application/json
+
+### Create a new assistant
+POST {{host}}/assistants
+Content-Type: application/json
+
+{
+  "category": "Sample Category",
+  "prompt": "Sample Prompt"
+}
+
+### Get assistant chat
+@message=Hello me
+GET {{host}}/assistants/00000000-0000-0000-0000-000000000000/chat?message={{message}}
+Content-Type: application/json
+
+### Delete an assistant
+DELETE {{host}}/assistants/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
