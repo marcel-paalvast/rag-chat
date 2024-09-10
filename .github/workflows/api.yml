@@ -1,0 +1,56 @@
+name: Deploy API
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/api/**'
+      - '.github/workflows/api.yml'
+
+jobs:
+  deploy_project:
+    name: Deploy API
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Publish project
+      run: |
+        dotnet publish "src/api/RagChatApi/RagChatApi.csproj" \
+          --runtime win-x64 \
+          --configuration Release \
+          --output ./publish
+
+    - name: Zip published project
+      id: zip_project
+      run: |
+        cd ./publish && zip -r ../drop.zip .
+
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy Bicep file
+      id: deploy_bicep
+      run: |
+        name=$(az deployment group create \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --template-file iac/endpoint.bicep \
+          --parameters iac/endpoint.bicepparam \
+          --query "properties.outputs.name.value" \
+          -o tsv)
+        echo "FUNCTION_APP_NAME=$name" >> $GITHUB_ENV
+
+    - name: Deploy project
+      run: |
+        az functionapp deployment source config-zip \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --name $FUNCTION_APP_NAME \
+          --src drop.zip
