@@ -1,0 +1,29 @@
+name: Deploy Infrastructure as Code
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'iac/**'
+      - '.github/workflows/iac.yml'
+
+jobs:
+  deploy_iac:
+    name: Deploy Infrastructure as Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy Bicep file
+      id: deploy_bicep
+      run: |
+        az deployment group create \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --template-file iac/main.bicep \
+          --parameters iac/main.bicepparam
