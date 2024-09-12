@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - 'api/**' # For testing purposes
     paths:
       - 'src/api/**'
       - '.github/workflows/api.yml'
