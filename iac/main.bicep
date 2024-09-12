@@ -40,6 +40,20 @@ param keyVaultName string
 @description('The prefix for naming the Identity used by the Function App.')
 param identityName string
 
+@secure()
+@description('Uri used to connect to Azure OpenAi resource.')
+param openAiUri string
+
+@secure()
+@description('Key used to connect to Azure OpenAi resource.')
+param openAiKey string
+
+@description('The id of the assistant to use.')
+param openAiAssistant string
+
+@description('The name of the embedding to use.')
+param openAiEmbedding string
+
 var functionAppName = createUniqueName(functionAppPrefix)
 var storageAccountName = createUniqueName(storageAccountPrefix)
 var cosmosAccountName = createUniqueName(cosmosAccountPrefix)
@@ -134,6 +148,22 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'Cosmos:Key'
           value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretCosmosKey.name})'
+        }
+        {
+          name: 'OpenAi:Uri'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiUri.name})'
+        }
+        {
+          name: 'OpenAiKey:Key'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiKey.name})'
+        }
+        {
+          name: 'OpenAi:Assistant'
+          value: openAiAssistant
+        }
+        {
+          name: 'OpenAi:Embedding'
+          value: openAiEmbedding
         }
       ]
     }
@@ -258,5 +288,21 @@ resource secretCosmosKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   name: 'CosmosKey'
   properties: {
     value: cosmosAccount.listKeys().primaryMasterKey
+  }
+}
+
+resource secretOpenAiUri 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'OpenAiUri'
+  properties: {
+    value: openAiUri
+  }
+}
+
+resource secretOpenAiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'OpenAiKey'
+  properties: {
+    value: openAiKey
   }
 }
