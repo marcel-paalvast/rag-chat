@@ -154,7 +154,7 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiUri.name})'
         }
         {
-          name: 'OpenAiKey:Key'
+          name: 'OpenAi:Key'
           value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiKey.name})'
         }
         {
