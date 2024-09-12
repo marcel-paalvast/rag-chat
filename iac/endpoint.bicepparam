@@ -1,3 +1,3 @@
 using 'endpoint.bicep'
 
-param functionAppPrefix = 'ragchat'
+param functionAppPrefix = 'ragChat'
