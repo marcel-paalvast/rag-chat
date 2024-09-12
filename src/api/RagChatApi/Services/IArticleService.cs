@@ -1,4 +1,5 @@
-﻿using RagChatApi.Models;
+﻿using Microsoft.AspNetCore.Http;
+using RagChatApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,8 @@ using System.Threading.Tasks;
 namespace RagChatApi.Services;
 public interface IArticleService
 {
-    Task<IEnumerable<Article>> GetArticlesAsync(CancellationToken cancellationToken = default);
-    Task<Article> CreateArticleAsync(Article article, CancellationToken cancellationToken = default);
-    Task DeleteArticleAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Article> CreateArticleFromFileAsync(string category, IFormFile file, CancellationToken cancellationToken = default);
+    Task DeleteArticleAsync(Article article, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Article> GetArticlesAsync(CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Article> GetTopArticlesByTextAsync(string text, string category, int top, CancellationToken cancellationToken = default);
 }

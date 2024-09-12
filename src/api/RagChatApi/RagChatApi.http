@@ -23,16 +23,16 @@ This is a sample markdown file
 --boundary--
 
 ### Delete an article
-DELETE {{host}}/articles/00000000-0000-0000-0000-000000000000
+DELETE {{host}}/articles
 Content-Type: application/json
+
+{
+  "id": "0efa1d43-65ef-4ee6-9929-15634ef9870e",
+  "category": "Cooking",
+}
 
 ### Get all assistants
 GET {{host}}/assistants
-Content-Type: application/json
-
-### Get all assistants of category
-@category=My category
-GET {{host}}/assistants?category={{category}}
 Content-Type: application/json
 
 ### Create a new assistant
@@ -40,8 +40,8 @@ POST {{host}}/assistants
 Content-Type: application/json
 
 {
-  "category": "Sample Category",
-  "prompt": "Sample Prompt"
+  "category": "Cooking",
+  "prompt": "You play the role of assistant. Answer questions as best as you can."
 }
 
 ### Get assistant chat
@@ -50,5 +50,11 @@ GET {{host}}/assistants/00000000-0000-0000-0000-000000000000/chat?message={{mess
 Content-Type: application/json
 
 ### Delete an assistant
-DELETE {{host}}/assistants/00000000-0000-0000-0000-000000000000
+DELETE {{host}}/assistants
 Content-Type: application/json
+
+{
+  "id": "8742841f-046b-40fd-89ea-32503a36c98c",
+  "category": "Cooking",
+  "prompt": "You play the role of assistant. Answer questions as best as you can."
+}
