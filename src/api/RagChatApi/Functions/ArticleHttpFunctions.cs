@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using RagChatApi.Models;
 using RagChatApi.Services;
 using System.ComponentModel.DataAnnotations;
@@ -50,7 +49,11 @@ public class ArticleHttpFunctions(
         }
 
         var file = req.Form.Files.Single();
-        var article = await articleService.CreateArticleFromFileAsync(category, file, cancellationToken);
+        var extension = file.FileName.Split('.').Last().ToLower();
+        using var stream = file.OpenReadStream();
+        var text = await TextExtractor.ExtractTextAsync(stream, extension, cancellationToken);
+
+        var article = await articleService.CreateArticleAsync(category, text, cancellationToken);
 
         logger.LogInformation("C# HTTP trigger function processed a POST request for articles.");
         return new OkObjectResult(article);

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace RagChatApi.Services;
 public interface IConversation
 {
-    string Id { get; set; }
+    string Id { get; }
+    string Category { get; }
+    string ContinuationToken { get => $"{Category}/{Id}"; }
     IAsyncEnumerable<string> SendMessageAsync(string message, CancellationToken cancellationToken = default);
 }

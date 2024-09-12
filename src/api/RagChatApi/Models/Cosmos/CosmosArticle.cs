@@ -9,7 +9,7 @@ namespace RagChatApi.Models.Cosmos;
 public class CosmosArticle : Article
 {
     [JsonPropertyName("vector")]
-    public required double[] Vector { get; set; }
+    public required ReadOnlyMemory<float> Vector { get; set; }
     [JsonPropertyName("type")]
     public string Type { get; } = CosmosTypes.Article;
 }

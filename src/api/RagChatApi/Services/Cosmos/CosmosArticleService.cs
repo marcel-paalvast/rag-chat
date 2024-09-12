@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Cosmos;
+﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
 using RagChatApi.Models;
@@ -11,18 +10,19 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RagChatApi.Services;
-public class CosmosArticleService(CosmosContainerClientFactory clientFactory, IEmbeddingService embeddingService) : IArticleService
+namespace RagChatApi.Services.Cosmos;
+public class CosmosArticleService(CosmosContainerClientFactory clientFactory, IEmbeddingService embeddingService, IStorageService storageService) : IArticleService
 {
     private readonly Container _client = clientFactory.CreateClient();
 
-    public async Task<Article> CreateArticleFromFileAsync(string category, IFormFile file, CancellationToken cancellationToken = default)
+    public async Task<Article> CreateArticleAsync(string category, string text, CancellationToken cancellationToken = default)
     {
-        var embedding = await embeddingService.GetEmbeddingAsync(file, cancellationToken);
+        var embedding = await embeddingService.GetEmbeddingAsync(text, cancellationToken);
+        var id = Guid.NewGuid();
 
         var article = new CosmosArticle
         {
-            Id = Guid.NewGuid(),
+            Id = id,
             Category = category,
             Vector = embedding,
         };
@@ -38,6 +38,8 @@ public class CosmosArticleService(CosmosContainerClientFactory clientFactory, IE
         };
 
         await _client.CreateItemAsync(article, partitionKey, options, cancellationToken: cancellationToken);
+
+        await storageService.SaveFileAsync(id.ToString(), text, cancellationToken);
 
         return article;
     }
@@ -79,7 +81,7 @@ public class CosmosArticleService(CosmosContainerClientFactory clientFactory, IE
     }
 
     public async IAsyncEnumerable<Article> GetTopArticlesByTextAsync(
-        string text, 
+        string text,
         string category,
         int top,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)

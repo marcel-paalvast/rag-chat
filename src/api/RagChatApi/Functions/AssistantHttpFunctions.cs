@@ -61,13 +61,19 @@ public class AssistantHttpFunctions(
             return new BadRequestObjectResult("Message must be between 1 and 2048 characters");
         }
 
-        IConversation conversation = req.Headers.TryGetValue("continuationToken", out StringValues headerValues) && headerValues.FirstOrDefault() is string conversationId
-            ? await chatService.GetConversationAsync(conversationId, assistantId, cancellationToken)
-            : await chatService.CreateConversationAsync(assistantId, cancellationToken);
+        IConversation conversation;
+        if (req.Headers.TryGetValue("continuationToken", out StringValues headerValues) && headerValues.FirstOrDefault() is string continuationToken)
+        {
+            conversation = await chatService.GetConversationAsync(continuationToken, cancellationToken);
+        }
+        else
+        {
+            conversation = await chatService.CreateConversationAsync(assistantId, cancellationToken);
+        }
 
         var messageStream = conversation.SendMessageAsync(message, cancellationToken);
 
-        req.HttpContext.Response.Headers.Append(continuationTokenHeader, conversation.Id);
+        req.HttpContext.Response.Headers.Append(continuationTokenHeader, conversation.ContinuationToken);
         return new ChatStreamResult(messageStream);
     }
 

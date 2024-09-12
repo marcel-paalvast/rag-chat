@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace RagChatApi.Services;
+namespace RagChatApi.Services.Cosmos;
 public class CosmosContainerClientFactory
 {
     private readonly Container container;
@@ -30,6 +30,7 @@ public class CosmosContainerClientFactory
 
         var client = new CosmosClient(settings.Value.Uri, settings.Value.Key, options);
         var database = client.GetDatabase("ragChat");
+
         container = CreateContainerIfNotExistsAsync(database, "main").Result;
     }
 
@@ -48,7 +49,7 @@ public class CosmosContainerClientFactory
 
         Collection<Embedding> collection = new(embeddings);
 
-        ContainerProperties properties = new(id: containerId, partitionKeyPaths: [ "/type", "/category" ])
+        ContainerProperties properties = new(id: containerId, partitionKeyPaths: ["/type", "/category"])
         {
             VectorEmbeddingPolicy = new(collection),
             IndexingPolicy = new IndexingPolicy()

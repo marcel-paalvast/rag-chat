@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace RagChatApi.Services;
 public interface IChatService
 {
-    Task<IConversation> GetConversationAsync(string id, Guid AssistantId, CancellationToken cancellationToken = default);
+    Task<IConversation> GetConversationAsync(string continuationToken, CancellationToken cancellationToken = default);
     Task<IConversation> CreateConversationAsync(Guid AssistantId, CancellationToken cancellationToken = default);
 }

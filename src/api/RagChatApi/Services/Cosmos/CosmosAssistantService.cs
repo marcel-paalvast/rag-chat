@@ -1,6 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.Extensions.Options;
 using RagChatApi.Models;
 using RagChatApi.Models.Cosmos;
 using System;
@@ -10,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RagChatApi.Services;
+namespace RagChatApi.Services.Cosmos;
 public class CosmosAssistantService(CosmosContainerClientFactory clientFactory) : IAssistantService
 {
     private readonly Container _client = clientFactory.CreateClient();

@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RagChatApi.Services;
+using RagChatApi.Services.Cosmos;
+using RagChatApi.Services.OpenAi;
 using RagChatApi.Settings;
 
 var host = new HostBuilder()
@@ -17,11 +19,17 @@ var host = new HostBuilder()
             config.GetSection("Cosmos").Bind(settings);
         });
 
+        services.AddOptions<OpenAiSettings>().Configure<IConfiguration>((settings, config) =>
+        {
+            config.GetSection("OpenAi").Bind(settings);
+        });
+
         services.AddSingleton<CosmosContainerClientFactory>();
         services.AddSingleton<IArticleService, CosmosArticleService>();
         services.AddSingleton<IAssistantService, CosmosAssistantService>();
         services.AddSingleton<IEmbeddingService, OpenAiEmbeddingService>();
         services.AddSingleton<IChatService, OpenAiChatService>();
+        services.AddSingleton<IStorageService, FakeStorageService>();
     })
     .Build();
 

@@ -14,9 +14,9 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="category"
 
-sample
+Shopping
 --boundary
-Content-Disposition: form-data; name="file"; filename="sample.md"
+Content-Disposition: form-data; name="file"; filename="shopping-list.md"
 Content-Type: text/markdown
 
 This is a sample markdown file
@@ -45,8 +45,8 @@ Content-Type: application/json
 }
 
 ### Get assistant chat
-@message=Hello me
-GET {{host}}/assistants/00000000-0000-0000-0000-000000000000/chat?message={{message}}
+@message=Can you group the shopping list items by category?
+GET {{host}}/assistants/c7a65ed7-21e8-4a2d-82cc-c25c275be331/chat?message={{message}}
 Content-Type: application/json
 
 ### Delete an assistant
