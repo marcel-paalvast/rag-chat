@@ -57,7 +57,9 @@ param openAiEmbedding string
 var functionAppName = createUniqueName(functionAppPrefix)
 var storageAccountName = createUniqueName(storageAccountPrefix)
 var cosmosAccountName = createUniqueName(cosmosAccountPrefix)
-var cosmosDatabaseName = 'ragChat' // used by api
+// variables below are used by the api
+var cosmosDatabaseName = 'ragChat'
+var storageContainerName = 'rag-chat'
 
 @description('Contains tags that are deployed on each resource.')
 var tags = {
@@ -85,6 +87,31 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   kind: 'StorageV2'
   properties: {
     accessTier: 'Hot'
+  }
+}
+
+resource storageBlobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    containerDeleteRetentionPolicy: {
+      enabled: false
+    }
+    cors: {
+      corsRules: []
+    }
+    deleteRetentionPolicy: {
+      enabled: true
+      days: 31
+    }
+  }
+}
+
+resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: storageBlobService
+  name: storageContainerName
+  properties: {
+    publicAccess: 'None'
   }
 }
 
@@ -164,6 +191,10 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'OpenAi:Embedding'
           value: openAiEmbedding
+        }
+        {
+          name: 'AzureStorage:ConnectionString'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
         }
       ]
     }
