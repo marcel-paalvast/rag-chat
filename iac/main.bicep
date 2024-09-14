@@ -136,7 +136,10 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
     keyVaultReferenceIdentity: identity.id
     siteConfig: {
       cors: {
-        allowedOrigins: [ storageAccount.properties.primaryEndpoints.web ]
+        allowedOrigins: [
+          // Remove trailing slash from storage account web endpoint
+          substring(storageAccount.properties.primaryEndpoints.web, 0, length(storageAccount.properties.primaryEndpoints.web) - 1) 
+        ]
         supportCredentials: false
       }
       ftpsState: 'Disabled'
