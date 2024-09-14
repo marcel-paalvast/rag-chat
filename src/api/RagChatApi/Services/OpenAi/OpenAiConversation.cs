@@ -26,7 +26,7 @@ public class OpenAiConversation(string category, Assistant assistant, AssistantC
             MaxCompletionTokens = 500,
             ResponseFormat = AssistantResponseFormat.Text,
             Temperature = 0.2f,
-            TruncationStrategy = RunTruncationStrategy.CreateLastMessagesStrategy(10),
+            TruncationStrategy = RunTruncationStrategy.CreateLastMessagesStrategy(30),
         };
 
         var articles = articleService.GetTopArticlesByTextAsync(message, Category, top: 3, cancellationToken);
