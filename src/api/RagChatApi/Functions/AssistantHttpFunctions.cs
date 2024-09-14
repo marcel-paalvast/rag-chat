@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -37,7 +38,7 @@ public class AssistantHttpFunctions(
         assistant.Id = Guid.NewGuid();
         await assistantService.CreateAssistantAsync(assistant, cancellationToken);
         logger.LogInformation("C# HTTP trigger function processed a POST request for assistants.");
-        return new OkObjectResult(assistant);
+        return new OkObjectResult<Assistant>(assistant);
     }
 
     [Function("GetAssistantChat")]
@@ -62,7 +63,7 @@ public class AssistantHttpFunctions(
         }
 
         IConversation conversation;
-        if (req.Headers.TryGetValue("continuationToken", out StringValues headerValues) && headerValues.FirstOrDefault() is string continuationToken)
+        if (req.Headers.TryGetValue(continuationTokenHeader, out StringValues headerValues) && headerValues.FirstOrDefault() is string continuationToken)
         {
             conversation = await chatService.GetConversationAsync(continuationToken, cancellationToken);
         }
@@ -85,7 +86,7 @@ public class AssistantHttpFunctions(
         var assistants = await assistantService.GetAssistantsAsync(cancellationToken).ToListAsync(cancellationToken: cancellationToken);
 
         logger.LogInformation("C# HTTP trigger function processed a GET request for assistants.");
-        return new OkObjectResult(assistants);
+        return new OkObjectResult<IEnumerable<Assistant>>(assistants);
     }
 
     [Function("DeleteAssistant")]
@@ -101,7 +102,7 @@ public class AssistantHttpFunctions(
         }
 
         await assistantService.DeleteAssistantAsync(assistant, cancellationToken);
-        logger.LogInformation($"C# HTTP trigger function processed a DELETE request for assistant: {assistant}");
+        logger.LogInformation("C# HTTP trigger function processed a DELETE request for assistant: {assistant}", assistant.Id);
         return new OkObjectResult($"Assistant {assistant} deleted");
     }
 }

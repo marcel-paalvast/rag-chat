@@ -1,25 +1,45 @@
 # Sample requests
 # Use in Visual Studio Code with REST Client extension
 # Some functionality is not supported in Visual Studio
-@host =  http://localhost:7286/api
+@host = http://localhost:7286/api
 
 ### Get all articles
 GET {{host}}/articles
 Content-Type: application/json
 
 ### Create a new article with file upload
+# @name createArticle
 POST {{host}}/articles
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
 Content-Disposition: form-data; name="category"
 
-Shopping
+Cooking
 --boundary
-Content-Disposition: form-data; name="file"; filename="shopping-list.md"
+Content-Disposition: form-data; name="file"; filename="pancake-recipe.md"
 Content-Type: text/markdown
 
-This is a sample markdown file
+Simple Pancake Recipe
+
+Ingredients
+- 1 cup all-purpose flour
+- 2 tablespoons sugar
+- 1 tablespoon baking powder
+- 1/2 teaspoon salt
+- 1 cup milk
+- 1 egg
+- 2 tablespoons melted butter
+- 1 teaspoon vanilla extract
+
+Instructions
+1. In a large bowl, whisk together the flour, sugar, baking powder, and salt.
+2. In another bowl, beat the egg and then whisk in the milk, melted butter, and vanilla extract.
+3. Pour the wet ingredients into the dry ingredients and stir until just combined. Do not overmix.
+4. Heat a non-stick skillet or griddle over medium heat and lightly grease it with butter or oil.
+5. Pour 1/4 cup of batter onto the skillet for each pancake. Cook until bubbles form on the surface and the edges look set, about 2-3 minutes.
+6. Flip the pancakes and cook for another 1-2 minutes, until golden brown and cooked through.
+7. Serve warm with your favorite toppings.
 --boundary--
 
 ### Delete an article
@@ -27,8 +47,8 @@ DELETE {{host}}/articles
 Content-Type: application/json
 
 {
-  "id": "0efa1d43-65ef-4ee6-9929-15634ef9870e",
-  "category": "Cooking",
+  "id": "{{createArticle.response.body.$.id}}",
+  "category": "Cooking"
 }
 
 ### Get all assistants
@@ -36,18 +56,27 @@ GET {{host}}/assistants
 Content-Type: application/json
 
 ### Create a new assistant
+# @name createAssistant
 POST {{host}}/assistants
 Content-Type: application/json
 
 {
+  "name": "Grocery Shopkeeper",
   "category": "Cooking",
-  "prompt": "You play the role of assistant. Answer questions as best as you can."
+  "prompt": "You are a shopkeeper from a grocery store. You should be able to provide information about ingredients, where to find them, and how to substitute them."
 }
 
 ### Get assistant chat
-@message=Can you group the shopping list items by category?
-GET {{host}}/assistants/c7a65ed7-21e8-4a2d-82cc-c25c275be331/chat?message={{message}}
+# @name getChat
+@message=I want to make pancakes. Can you create a shopping list grouped by category?
+GET {{host}}/assistants/{{createAssistant.response.body.$.id}}/chat?message={{message}}
 Content-Type: application/json
+
+### Continue assistant chat with continuation token
+@followup=Can you tell me more about the first optional topping you suggested?
+GET {{host}}/assistants/{{createAssistant.response.body.$.id}}/chat?message={{followup}}
+Content-Type: application/json
+Continuation-Token: {{getChat.response.headers.Continuation-Token}}
 
 ### Delete an assistant
 DELETE {{host}}/assistants
@@ -55,6 +84,7 @@ Content-Type: application/json
 
 {
   "id": "8742841f-046b-40fd-89ea-32503a36c98c",
+  "name": "Grocery Shopkeeper",
   "category": "Cooking",
-  "prompt": "You play the role of assistant. Answer questions as best as you can."
+  "prompt": "You are a shopkeeper from a grocery store. You should be able to provide information about ingredients, where to find them, and how to substitute them."
 }

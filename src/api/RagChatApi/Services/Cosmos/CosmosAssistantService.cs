@@ -19,6 +19,7 @@ public class CosmosAssistantService(CosmosContainerClientFactory clientFactory) 
         var cosmosAssistant = new CosmosAssistant()
         {
             Id = assistant.Id,
+            Name = assistant.Name,
             Category = assistant.Category,
             Prompt = assistant.Prompt,
         };

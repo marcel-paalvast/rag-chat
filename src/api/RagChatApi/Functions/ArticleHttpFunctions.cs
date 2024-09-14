@@ -20,7 +20,7 @@ public class ArticleHttpFunctions(
         var articles = await articleService.GetArticlesAsync(cancellationToken).ToListAsync(cancellationToken);
         
         logger.LogInformation("C# HTTP trigger function processed a GET request for articles.");
-        return new OkObjectResult(articles);
+        return new OkObjectResult<IEnumerable<Article>>(articles);
     }
 
     [Function("PostArticles")]
@@ -56,7 +56,7 @@ public class ArticleHttpFunctions(
         var article = await articleService.CreateArticleAsync(category, text, cancellationToken);
 
         logger.LogInformation("C# HTTP trigger function processed a POST request for articles.");
-        return new OkObjectResult(article);
+        return new OkObjectResult<Article>(article);
     }
 
     [Function("DeleteArticle")]
@@ -78,7 +78,7 @@ public class ArticleHttpFunctions(
         }
 
         await articleService.DeleteArticleAsync(article, cancellationToken);
-        logger.LogInformation($"C# HTTP trigger function processed a DELETE request for article: {article}");
+        logger.LogInformation("C# HTTP trigger function processed a DELETE request for article: {article}", article);
         return new OkObjectResult($"Article {article} deleted");
     }
 }

@@ -29,7 +29,7 @@ public class OpenAiConversation(string category, Assistant assistant, AssistantC
             TruncationStrategy = RunTruncationStrategy.CreateLastMessagesStrategy(10),
         };
 
-        var articles = articleService.GetTopArticlesByTextAsync(message, Category, top: 5, cancellationToken);
+        var articles = articleService.GetTopArticlesByTextAsync(message, Category, top: 3, cancellationToken);
 
         List<Task<string>> tasks = [];
         await foreach (var article in articles)
@@ -38,11 +38,7 @@ public class OpenAiConversation(string category, Assistant assistant, AssistantC
         }
 
         await Task.WhenAll(tasks);
-
-        foreach (var task in tasks)
-        {
-            options.AdditionalMessages.Add(await task);
-        }
+        options.AdditionalMessages.Add(new(MessageRole.Assistant, tasks.Select(x => MessageContent.FromText(x.Result)).ToList()));
 
         var streamingUpdates = assistantClient.CreateRunStreamingAsync(assistantThread, assistant, options);
 
