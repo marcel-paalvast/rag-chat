@@ -1,3 +1,4 @@
 using 'endpoint.bicep'
+import { defaultPrefix } from './main.bicep'
 
-param functionAppPrefix = 'ragChat'
+param functionAppPrefix = defaultPrefix

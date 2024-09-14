@@ -3,6 +3,9 @@ metadata description = 'Create Azure Resources.'
 targetScope = 'resourceGroup'
 
 @export()
+var defaultPrefix = 'ragChat'
+
+@export()
 @description('Creates a unique name for Azure Resources.')
 func createUniqueName(prefix string) string => '${prefix}${uniqueString(resourceGroup().id)}'
 

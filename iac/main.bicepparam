@@ -1,6 +1,5 @@
 using 'main.bicep'
-
-var defaultPrefix = 'ragChat'
+import { defaultPrefix } from './main.bicep'
 
 param functionAppPrefix = defaultPrefix
 
