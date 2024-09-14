@@ -54,7 +54,7 @@ function Selector({ onSelect }: { onSelect: (assistant: Assistant) => void }) {
   return (
     <>
       <Box className="glass-effect">
-        <Card sx={{ minWidth: 512 }}>
+        <Card sx={{ minWidth: 512, textAlign: 'center' }}>
           <CardContent>
             <Typography variant="h5" gutterBottom color="primary">
               Select an Assistant
