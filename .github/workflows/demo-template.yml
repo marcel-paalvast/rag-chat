@@ -1,0 +1,102 @@
+name: Deploy Demo Template
+
+on:
+  workflow_call:
+    inputs:
+      demo-file:
+        description: 'Name to the json file containing the demo information.'
+        required: true
+        type: string
+
+jobs:
+  deploy_demo:
+    name: Deploy Demo
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: 'main'
+
+    - name: Retrieve the demo repository
+      id: retrieve_repo
+      run: |
+        file_path="main/demo/${{ inputs.demo-file }}"
+        repository=$(jq -r '.repository' "$file_path")
+        ref=$(jq -r '.ref' "$file_path")
+        category=$(jq -r '.category' "$file_path")
+        echo "REPOSITORY=$repository" >> $GITHUB_ENV
+        echo "REF=$ref" >> $GITHUB_ENV
+        echo "CATEGORY=$category" >> $GITHUB_ENV
+
+    - name: Checkout ${{ env.REPOSITORY }} repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ env.REPOSITORY }}
+        ref: ${{ env.REF }}
+        path: 'demo'
+
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Retrieve Api Information
+      id: api_info
+      run: |
+        output=$(az deployment group create \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --template-file main/iac/endpoint.bicep \
+          --parameters main/iac/endpoint.bicepparam \
+          --query "{endpoint: properties.outputs.endpoint.value, name: properties.outputs.name.value}" \
+          -o tsv)
+        read -r endpoint name <<< $output
+        echo "FUNCTION_APP_ENDPOINT=$endpoint" >> $GITHUB_ENV
+        echo "FUNCTION_APP_NAME=$name" >> $GITHUB_ENV
+
+    - name: Retrieve Api Key
+      id: api_key
+      run: |
+        key=$(az functionapp keys list \
+          --name $FUNCTION_APP_NAME \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --query "functionKeys.default" \
+          -o tsv)
+        echo "::add-mask::$key"
+        echo "FUNCTION_APP_KEY=$key" >> $GITHUB_ENV
+
+    - name: Upload Demo Assistants
+      id: upload_demo_assistants
+      env:
+        ASSISTANTS_ENDPOINT: https://${{ env.FUNCTION_APP_ENDPOINT }}/api/assistants
+      run: |
+        file_path="main/demo/${{ inputs.demo-file }}"
+        if [ ! -f "$file_path" ]; then
+          echo "File $file_path not found!"
+          exit 1
+        fi
+        jq -c '.assistants[]' "$file_path" | while read -r assistant; do
+          name=$(echo "$assistant" | jq -r '.name')
+          prompt=$(echo "$assistant" | jq -r '.prompt')
+          # Create the asssistant
+          response=$(curl -X POST "${{ env.ASSISTANTS_ENDPOINT }}" \
+            -H "Content-Type: application/json" \
+            -H "x-functions-key: $FUNCTION_APP_KEY" \
+            -d "{\"category\": \"$CATEGORY\", \"name\": \"$name\", \"prompt\": \"$prompt\"}")
+          echo $response
+        done
+
+    - name: Upload Demo Data
+      id: upload_demo_data
+      env:
+        ARTICLES_ENDPOINT: https://${{ env.FUNCTION_APP_ENDPOINT }}/api/articles
+      run: |
+        find demo -type f -name "*.md" | while read -r FILE; do
+          # Create an article by sending the file
+          echo "Uploading $FILE"
+          response=$(curl -X POST "${{ env.ARTICLES_ENDPOINT }}" \
+            -F "file=@${FILE}" \
+            -F "category=$CATEGORY" \
+            -H "x-functions-key: $FUNCTION_APP_KEY")
+          echo $response
+        done

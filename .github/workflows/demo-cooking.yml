@@ -1,0 +1,19 @@
+name: Deploy Cooking Demo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'demo/**' # For testing purposes
+    paths:
+      - 'demo/cooking.json'
+      - '.github/workflows/demo-template.yml'
+      - '.github/workflows/demo-cooking.yml'
+
+jobs:
+  deploy_demo:
+    name: Deploy Cooking Demo
+    uses: ./.github/workflows/demo-template.yml
+    secrets: inherit
+    with:
+      demo-file: cooking.json
