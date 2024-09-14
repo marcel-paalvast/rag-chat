@@ -2,7 +2,7 @@ import Assistant from '../models/assistant'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiContext } from '../App';
 import ClockProgress from './ClockProgress';
-import { Box, Button, IconButton, Paper, Snackbar, SxProps, TextField, Theme, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, Paper, SxProps, TextField, Theme, Tooltip, Typography } from '@mui/material';
 import ChangeUser from './ChangeUser';
 
 enum User {
