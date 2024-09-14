@@ -44,6 +44,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     const nextMessages = [...userMessages, { text: message, user: User.User }];
     setUserMessages(nextMessages);
     setLoading(true);
+    setInputValue('');
 
     try {
       const response = await api.getAssistantChat(
@@ -83,8 +84,6 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     }
 
     setLoading(false);
-
-    setInputValue('');
   };
 
   const removeMarkdown = (text: string) => {
@@ -247,7 +246,13 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
             }
           }}
         />
-        <Button variant='contained' onClick={() => sendMessage(inputValue)}>Send</Button>
+        <Button
+          variant='contained'
+          onClick={() => sendMessage(inputValue)}
+          disabled={loading}
+        >
+          Send
+        </Button>
       </Box>
     </Box>
   );
