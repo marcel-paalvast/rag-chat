@@ -95,7 +95,7 @@ jobs:
           # Create an article by sending the file
           echo "Uploading $FILE"
           response=$(curl -X POST "${{ env.ARTICLES_ENDPOINT }}" \
-            -F "file=@${FILE}" \
+            -F "file=@\"${FILE}\"" \
             -F "category=$CATEGORY" \
             -H "x-functions-key: $FUNCTION_APP_KEY")
           echo $response
