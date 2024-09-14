@@ -135,6 +135,10 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: functionsAppPlan.id
     keyVaultReferenceIdentity: identity.id
     siteConfig: {
+      cors: {
+        allowedOrigins: [ storageAccount.properties.primaryEndpoints.web ]
+        supportCredentials: false
+      }
       ftpsState: 'Disabled'
       http20Enabled: true
       keyVaultReferenceIdentity: identity.id
