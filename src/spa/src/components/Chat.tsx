@@ -109,42 +109,38 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
       whiteSpace: 'pre-wrap',
       overflowWrap: 'break-word',
       textAlign: 'left',
+      color: '#fff',
     };
     switch (user) {
       case User.Assistant:
         return {
           ...base,
-          backgroundColor: '#248232',
-          color: '#fff',
+          backgroundColor: '#9500ae',
           alignSelf: 'flex-start',
         };
       case User.User:
         return {
           ...base,
-          backgroundColor: '#1370DB',
-          color: '#fff',
+          backgroundColor: '#1769aa',
           alignSelf: 'flex-end',
           textAlign: 'right',
         };
       case User.Instruction:
         return {
           ...base,
-          backgroundColor: '#D5D5D5',
-          color: '#000',
+          backgroundColor: '#14a37f',
           alignSelf: 'flex-start',
         };
       case User.Error:
         return {
           ...base,
           backgroundColor: 'linear-gradient(130deg,#A11425,#942157)',
-          color: '#fff',
           alignSelf: 'flex-start',
         };
       default:
         return {
           ...base,
-          backgroundColor: '#D5D5D5',
-          color: '#000',
+          backgroundColor: '#b28900',
           alignSelf: 'flex-start',
         };
     }
