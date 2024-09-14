@@ -1,0 +1,88 @@
+name: Deploy Single Page Application
+on:
+  push:
+    branches:
+      - main
+      - 'spa/**' # For testing purposes
+    paths:
+      - 'src/spa/**'
+      - '.github/workflows/spa.yml'
+
+jobs:
+  deploy_project:
+    name: Deploy Single Page Application
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Retrieve Api Information
+      id: api_info
+      run: |
+        output=$(az deployment group create \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --template-file iac/endpoint.bicep \
+          --parameters iac/endpoint.bicepparam \
+          --query "{endpoint: properties.outputs.endpoint.value, name: properties.outputs.name.value, storage: properties.outputs.storage.value}" \
+          -o tsv)
+        read -r endpoint name storage <<< $output
+        echo "FUNCTION_APP_ENDPOINT=$endpoint" >> $GITHUB_ENV
+        echo "FUNCTION_APP_NAME=$name" >> $GITHUB_ENV
+        echo "STORAGE_ACCOUNT_NAME=$storage" >> $GITHUB_ENV
+
+    - name: Retrieve Api Key
+      id: api_key
+      run: |
+        key=$(az functionapp keys list \
+          --name $FUNCTION_APP_NAME \
+          --resource-group ${{ vars.RESOURCE_GROUP }} \
+          --query "functionKeys.default" \
+          -o tsv)
+        echo "::add-mask::$key"
+        echo "FUNCTION_APP_KEY=$key" >> $GITHUB_ENV
+
+    - name: Enable Static Website
+      run: |
+        az storage blob service-properties update \
+          --auth-mode login \
+          --account-name $STORAGE_ACCOUNT_NAME \
+          --static-website true \
+          --index-document index.html \
+          --404-document index.html
+              
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        cd src/spa
+        npm install
+
+    - name: Build project
+      env:
+        VITE_API_BASEURI: https://${{ env.FUNCTION_APP_ENDPOINT }}/api
+        VITE_API_KEY: ${{ env.FUNCTION_APP_KEY }}
+      run: |
+        cd src/spa
+        npm run build
+    
+    - name: Remove old files from Storage
+      run: |
+        az storage blob delete-batch \
+          --account-name $STORAGE_ACCOUNT_NAME \
+          --source '$web' \
+          --delete-snapshots include    
+
+    - name: Upload new files to Storage
+      run: |
+        az storage blob upload-batch \
+          --account-name $STORAGE_ACCOUNT_NAME \
+          --destination '$web' \
+          --source src/spa/dist
