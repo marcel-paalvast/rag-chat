@@ -2,7 +2,7 @@ import Assistant from '../models/assistant'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiContext } from '../App';
 import ClockProgress from './ClockProgress';
-import { Box, Button, IconButton, Paper, SxProps, TextField, Theme, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, Paper, Snackbar, SxProps, TextField, Theme, Tooltip, Typography } from '@mui/material';
 import ChangeUser from './ChangeUser';
 
 enum User {
@@ -45,35 +45,43 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     setUserMessages(nextMessages);
     setLoading(true);
 
-    const response = await api.getAssistantChat(
-      assistant.id,
-      inputValue,
-      conversationId,
-    );
+    try {
+      const response = await api.getAssistantChat(
+        assistant.id,
+        inputValue,
+        conversationId,
+      );
 
-    if (response.continuationToken) {
-      setConversationId(response.continuationToken);
+      const reader = response.reader;
+      const decoder = new TextDecoder();
+
+      let text = '';
+      const read = async () => {
+        const { done, value } = await reader.read();
+        if (done) {
+          return;
+        }
+        // Decode the chunk and update the state to display it
+        const newText = decoder.decode(value, { stream: true });
+        text += newText;
+
+        setUserMessages([...nextMessages, { text: removeMarkdown(text), user: User.Assistant }]);
+        // Read the next chunk
+        read();
+      };
+
+      read();
+
+      if (response.continuationToken) {
+        setConversationId(response.continuationToken);
+      }
+    }
+    catch (error: unknown) {
+      if (error instanceof Error) {
+        setUserMessages([...nextMessages, { text: removeMarkdown(error.message), user: User.Error }]);
+      }
     }
 
-    const reader = response.reader;
-    const decoder = new TextDecoder();
-
-    let text = '';
-    const read = async () => {
-      const { done, value } = await reader.read();
-      if (done) {
-        return;
-      }
-      // Decode the chunk and update the state to display it
-      const newText = decoder.decode(value, { stream: true });
-      text += newText;
-
-      setUserMessages([...nextMessages, { text: removeMarkdown(text), user: User.Assistant }]);
-      // Read the next chunk
-      read();
-    };
-
-    read();
     setLoading(false);
 
     setInputValue('');
