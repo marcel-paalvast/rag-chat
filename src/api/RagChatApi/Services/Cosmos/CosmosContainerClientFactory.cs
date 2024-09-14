@@ -59,7 +59,7 @@ public class CosmosContainerClientFactory
                     new VectorIndexPath()
                     {
                         Path = "/vector",
-                        Type = VectorIndexType.QuantizedFlat,
+                        Type = VectorIndexType.DiskANN,
                     },
                 ]
             },
