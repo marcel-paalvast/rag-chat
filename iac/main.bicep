@@ -138,7 +138,11 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
       cors: {
         allowedOrigins: [
           // Remove trailing slash from storage account web endpoint
-          substring(storageAccount.properties.primaryEndpoints.web, 0, length(storageAccount.properties.primaryEndpoints.web) - 1) 
+          substring(
+            storageAccount.properties.primaryEndpoints.web,
+            0,
+            length(storageAccount.properties.primaryEndpoints.web) - 1
+          )
         ]
         supportCredentials: false
       }
@@ -276,7 +280,61 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024
   }
 }
 
-// cosmos container is created through script due to limitations in creating vector policies through bicep
+resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
+  parent: cosmosDatabase
+  name: 'main'
+  properties: {
+    options: {
+      throughput: 400
+    }
+    resource: {
+      id: 'main'
+      partitionKey: {
+        paths: [
+            '/type'
+            '/category'
+        ]
+        kind: 'MultiHash'
+        version: 2
+      }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        automatic: true
+        includedPaths: [
+          {
+            path: '/*'
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/_etag/?'
+          }
+          {
+            path: '/vector/*'
+          }
+        ]
+#disable-next-line BCP037
+        vectorIndexes: [
+          {
+            path: '/vector'
+            type: 'diskANN'
+          }
+        ]
+      }
+#disable-next-line BCP037
+      vectorEmbeddingPolicy: {
+        vectorEmbeddings: [
+          {
+            path: '/vector'
+            dataType: 'float32'
+            dimensions: 1024
+            distanceFunction: 'cosine'
+          }
+        ]
+      }
+    }
+  }
+}
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
@@ -301,8 +359,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
         objectId: identity.properties.principalId
         tenantId: identity.properties.tenantId
         permissions: {
-          secrets: [ 
-            'get' 
+          secrets: [
+            'get'
           ]
         }
       }
