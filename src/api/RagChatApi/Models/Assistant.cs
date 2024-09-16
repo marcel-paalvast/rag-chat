@@ -18,7 +18,9 @@ public class Assistant
     [StringLength(32)]
     [JsonPropertyName("name")]
     public required string Name { get; set; }
-    [Required]
+    [StringLength(2048)]
+    [JsonPropertyName("introduction")]
+    public required string Introduction { get; set; }
     [StringLength(2048)]
     [JsonPropertyName("prompt")]
     public required string Prompt { get; set; }

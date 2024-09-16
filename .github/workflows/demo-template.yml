@@ -78,11 +78,12 @@ jobs:
         jq -c '.assistants[]' "$file_path" | while read -r assistant; do
           name=$(echo "$assistant" | jq -r '.name')
           prompt=$(echo "$assistant" | jq -r '.prompt')
+          introduction=$(echo "$assistant" | jq -r '.introduction')
           # Create the asssistant
           response=$(curl -X POST "${{ env.ASSISTANTS_ENDPOINT }}" \
             -H "Content-Type: application/json" \
             -H "x-functions-key: $FUNCTION_APP_KEY" \
-            -d "{\"category\": \"$CATEGORY\", \"name\": \"$name\", \"prompt\": \"$prompt\"}")
+            -d "{\"category\": \"$CATEGORY\", \"name\": \"$name\", \"prompt\": \"$prompt\", \"introduction\": \"$introduction\"}")
           echo $response
         done
 

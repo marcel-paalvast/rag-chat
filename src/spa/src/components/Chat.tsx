@@ -148,7 +148,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
 
   const allMessages = useMemo(() => [
     {
-      text: `Welcome! I'm '${assistant?.name}'. How can I help you today?`,
+      text: assistant?.introduction ?? 'Hello! I am your personal AI assistant. How can I help you today?',
       user: User.Instruction,
     },
     ...userMessages,

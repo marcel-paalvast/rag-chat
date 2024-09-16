@@ -21,6 +21,7 @@ public class CosmosAssistantService(CosmosContainerClientFactory clientFactory) 
             Id = assistant.Id,
             Name = assistant.Name,
             Category = assistant.Category,
+            Introduction = assistant.Introduction,
             Prompt = assistant.Prompt,
         };
 
