@@ -20,7 +20,7 @@ interface Message {
 function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClose: () => void }) {
   const api = useContext(ApiContext);
   const [conversationId, setConversationId] = useState<string>();
-  const [userMessages, setUserMessages] = useState<Message[]>([]);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
@@ -30,10 +30,10 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
   };
 
   useEffect(() => {
-    if (userMessages.length > 0) {
+    if (conversationMessages.length > 0) {
       scrollToBottom();
     }
-  }, [userMessages]);
+  }, [conversationMessages]);
 
   const sendMessage = async (message: string) => {
     if (!assistant) {
@@ -41,8 +41,8 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     }
     if (inputValue.trim() === '') return;
 
-    const nextMessages = [...userMessages, { text: message, user: User.User }];
-    setUserMessages(nextMessages);
+    const nextMessages = [...conversationMessages, { text: message, user: User.User }];
+    setConversationMessages(nextMessages);
     setLoading(true);
     setInputValue('');
 
@@ -66,7 +66,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
         const newText = decoder.decode(value, { stream: true });
         text += newText;
 
-        setUserMessages([...nextMessages, { text: removeMarkdown(text), user: User.Assistant }]);
+        setConversationMessages([...nextMessages, { text: removeMarkdown(text), user: User.Assistant }]);
         // Read the next chunk
         read();
       };
@@ -79,7 +79,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     }
     catch (error: unknown) {
       if (error instanceof Error) {
-        setUserMessages([...nextMessages, { text: removeMarkdown(error.message), user: User.Error }]);
+        setConversationMessages([...nextMessages, { text: error.message, user: User.Error }]);
       }
     }
 
@@ -151,13 +151,13 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
       text: assistant?.introduction ?? 'Hello! I am your personal AI assistant. How can I help you today?',
       user: User.Instruction,
     },
-    ...userMessages,
-  ], [assistant?.name, userMessages]);
+    ...conversationMessages,
+  ], [assistant?.name, conversationMessages]);
 
   const closeChat = useCallback(() => {
-    setUserMessages([]);
+    setConversationMessages([]);
     onClose();
-  }, [onClose, setUserMessages]);
+  }, [onClose, setConversationMessages]);
 
   return (
     <Box
