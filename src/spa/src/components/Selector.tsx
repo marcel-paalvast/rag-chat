@@ -107,6 +107,7 @@ function Selector({ onSelect }: { onSelect: (assistant: Assistant) => void }) {
         open={error !== undefined}
         autoHideDuration={5000}
         message={error}
+        onClose={() => setError(undefined)}
       />
     </>
   );
