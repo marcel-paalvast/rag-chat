@@ -156,6 +156,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
 
   const closeChat = useCallback(() => {
     setConversationMessages([]);
+    setConversationId(undefined);
     onClose();
   }, [onClose, setConversationMessages]);
 
