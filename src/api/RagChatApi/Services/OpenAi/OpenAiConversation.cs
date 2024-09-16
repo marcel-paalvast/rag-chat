@@ -23,9 +23,9 @@ public class OpenAiConversation(string category, Assistant assistant, AssistantC
                 new(MessageRole.User, [MessageContent.FromText(message)]),
                 new(MessageRole.Assistant, [MessageContent.FromText("I can use the following snippets of knowledge to answer the user question:")]),
             },
-            MaxCompletionTokens = 500,
+            MaxCompletionTokens = 1000,
             ResponseFormat = AssistantResponseFormat.Text,
-            Temperature = 0.2f,
+            Temperature = 0.4f,
             TruncationStrategy = RunTruncationStrategy.CreateLastMessagesStrategy(30),
         };
 
