@@ -213,7 +213,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
           </Paper>
         ))}
         {loading && (
-          <Paper sx={getStyle(User.Instruction)}>
+          <Paper sx={getStyle(User.Assistant)}>
             <ClockProgress />
           </Paper>
         )}
