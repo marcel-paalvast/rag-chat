@@ -1,5 +1,5 @@
 import Assistant from '../models/assistant'
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiContext } from '../App';
 import ClockProgress from './ClockProgress';
 import { Box, Button, IconButton, Paper, SxProps, TextField, Theme, Tooltip, Typography } from '@mui/material';
@@ -154,6 +154,11 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
     ...userMessages,
   ], [assistant?.name, userMessages]);
 
+  const closeChat = useCallback(() => {
+    setUserMessages([]);
+    onClose();
+  }, [onClose, setUserMessages]);
+
   return (
     <Box
       className="chat"
@@ -180,7 +185,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
               top: '5px',
               right: '5px',
             }}
-            onClick={onClose}
+            onClick={closeChat}
           >
             <ChangeUser />
           </IconButton>
