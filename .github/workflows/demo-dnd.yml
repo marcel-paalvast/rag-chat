@@ -1,0 +1,18 @@
+name: Deploy Dungeons & Dragons Demo
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'demo/**' # For testing purposes
+    paths:
+      - 'demo/dnd.json'
+      - '.github/workflows/demo-template.yml'
+      - '.github/workflows/demo-dnd.yml'
+
+jobs:
+  deploy_demo:
+    name: Deploy Dungeons & Dragons Demo
+    uses: ./.github/workflows/demo-template.yml
+    secrets: inherit
+    with:
+      demo-file: dnd.json

@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RagChatApi.Models;
+/// <summary>
+/// Produces a streamed text using a <see cref="StatusCodes.Status200OK"/> response.
+/// </summary>
 public class ChatStreamResult(IAsyncEnumerable<string> messageStream) : IActionResult
 {
     public async Task ExecuteResultAsync(ActionContext context)

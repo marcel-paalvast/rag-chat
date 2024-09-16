@@ -27,4 +27,8 @@ jobs:
         az deployment group create \
           --resource-group ${{ vars.RESOURCE_GROUP }} \
           --template-file iac/main.bicep \
-          --parameters iac/main.bicepparam
+          --parameters iac/main.bicepparam \
+          --parameters openAiUri="${{ secrets.OPENAI_URI }}" \
+          --parameters openAiKey="${{ secrets.OPENAI_KEY }}" \
+          --parameters openAiAssistant="${{ vars.OPENAI_ASSISTANT }}" \
+          --parameters openAiEmbedding="${{ vars.OPENAI_EMBEDDING }}"

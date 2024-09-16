@@ -3,6 +3,9 @@ metadata description = 'Create Azure Resources.'
 targetScope = 'resourceGroup'
 
 @export()
+var defaultPrefix = 'ragChat'
+
+@export()
 @description('Creates a unique name for Azure Resources.')
 func createUniqueName(prefix string) string => '${prefix}${uniqueString(resourceGroup().id)}'
 
@@ -40,10 +43,26 @@ param keyVaultName string
 @description('The prefix for naming the Identity used by the Function App.')
 param identityName string
 
+@secure()
+@description('Uri used to connect to Azure OpenAi resource.')
+param openAiUri string
+
+@secure()
+@description('Key used to connect to Azure OpenAi resource.')
+param openAiKey string
+
+@description('The id of the assistant to use.')
+param openAiAssistant string
+
+@description('The name of the embedding to use.')
+param openAiEmbedding string
+
 var functionAppName = createUniqueName(functionAppPrefix)
 var storageAccountName = createUniqueName(storageAccountPrefix)
 var cosmosAccountName = createUniqueName(cosmosAccountPrefix)
-var cosmosDatabaseName = 'ragChat' // used by api
+// variables below are used by the api
+var cosmosDatabaseName = 'ragChat'
+var storageContainerName = 'rag-chat'
 
 @description('Contains tags that are deployed on each resource.')
 var tags = {
@@ -74,6 +93,31 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
+resource storageBlobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    containerDeleteRetentionPolicy: {
+      enabled: false
+    }
+    cors: {
+      corsRules: []
+    }
+    deleteRetentionPolicy: {
+      enabled: true
+      days: 31
+    }
+  }
+}
+
+resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: storageBlobService
+  name: storageContainerName
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
 resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
   name: functionAppName
   location: resourceGroup().location
@@ -91,6 +135,17 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: functionsAppPlan.id
     keyVaultReferenceIdentity: identity.id
     siteConfig: {
+      cors: {
+        allowedOrigins: [
+          // Remove trailing slash from storage account web endpoint
+          substring(
+            storageAccount.properties.primaryEndpoints.web,
+            0,
+            length(storageAccount.properties.primaryEndpoints.web) - 1
+          )
+        ]
+        supportCredentials: false
+      }
       ftpsState: 'Disabled'
       http20Enabled: true
       keyVaultReferenceIdentity: identity.id
@@ -134,6 +189,26 @@ resource functionsApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'Cosmos:Key'
           value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretCosmosKey.name})'
+        }
+        {
+          name: 'OpenAi:Uri'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiUri.name})'
+        }
+        {
+          name: 'OpenAi:Key'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${secretOpenAiKey.name})'
+        }
+        {
+          name: 'OpenAi:Assistant'
+          value: openAiAssistant
+        }
+        {
+          name: 'OpenAi:Embedding'
+          value: openAiEmbedding
+        }
+        {
+          name: 'AzureStorage:ConnectionString'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
         }
       ]
     }
@@ -205,7 +280,61 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024
   }
 }
 
-// cosmos container is created through script due to limitations in creating vector policies through bicep
+resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
+  parent: cosmosDatabase
+  name: 'main'
+  properties: {
+    options: {
+      throughput: 400
+    }
+    resource: {
+      id: 'main'
+      partitionKey: {
+        paths: [
+            '/type'
+            '/category'
+        ]
+        kind: 'MultiHash'
+        version: 2
+      }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        automatic: true
+        includedPaths: [
+          {
+            path: '/*'
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/_etag/?'
+          }
+          {
+            path: '/vector/*'
+          }
+        ]
+#disable-next-line BCP037
+        vectorIndexes: [
+          {
+            path: '/vector'
+            type: 'diskANN'
+          }
+        ]
+      }
+#disable-next-line BCP037
+      vectorEmbeddingPolicy: {
+        vectorEmbeddings: [
+          {
+            path: '/vector'
+            dataType: 'float32'
+            dimensions: 1024
+            distanceFunction: 'cosine'
+          }
+        ]
+      }
+    }
+  }
+}
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
@@ -230,8 +359,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
         objectId: identity.properties.principalId
         tenantId: identity.properties.tenantId
         permissions: {
-          secrets: [ 
-            'get' 
+          secrets: [
+            'get'
           ]
         }
       }
@@ -258,5 +387,21 @@ resource secretCosmosKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   name: 'CosmosKey'
   properties: {
     value: cosmosAccount.listKeys().primaryMasterKey
+  }
+}
+
+resource secretOpenAiUri 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'OpenAiUri'
+  properties: {
+    value: openAiUri
+  }
+}
+
+resource secretOpenAiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'OpenAiKey'
+  properties: {
+    value: openAiKey
   }
 }

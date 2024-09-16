@@ -7,11 +7,21 @@ targetScope = 'resourceGroup'
 @description('The name of the Azure Functions app.')
 param functionAppPrefix string
 
+@maxLength(9)
+@description('The prefix for naming the Storage Account.')
+param storageAccountPrefix string
+
 var functionAppName = createUniqueName(functionAppPrefix)
+var storageAccountName = createUniqueName(storageAccountPrefix)
 
 resource functionApp 'Microsoft.Web/sites@2023-12-01' existing = {
   name: functionAppName
 }
 
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
+  name: storageAccountName
+}
+
 output endpoint string = functionApp.properties.defaultHostName
 output name string = functionApp.name
+output storage string = storageAccount.name

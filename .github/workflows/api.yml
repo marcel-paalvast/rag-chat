@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - 'api/**' # For testing purposes
     paths:
       - 'src/api/**'
       - '.github/workflows/api.yml'
@@ -37,8 +38,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy Bicep file
-      id: deploy_bicep
+    - name: Retrieve Function App name
+      id: retrieve_name
       run: |
         name=$(az deployment group create \
           --resource-group ${{ vars.RESOURCE_GROUP }} \
