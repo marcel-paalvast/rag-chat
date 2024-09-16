@@ -74,7 +74,9 @@ public class AssistantHttpFunctions(
 
         var messageStream = conversation.SendMessageAsync(message, cancellationToken);
 
-        req.HttpContext.Response.Headers.Append(continuationTokenHeader, conversation.ContinuationToken);
+        var responseHeaders = req.HttpContext.Response.Headers;
+        responseHeaders.Append(continuationTokenHeader, conversation.ContinuationToken);
+        responseHeaders.Append("Access-Control-Expose-Headers", "Continuation-Token");
         return new ChatStreamResult(messageStream);
     }
 
