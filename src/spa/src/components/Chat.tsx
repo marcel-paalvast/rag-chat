@@ -134,7 +134,7 @@ function Chat({ assistant, onClose }: { assistant: Assistant | undefined, onClos
       case User.Error:
         return {
           ...base,
-          backgroundColor: 'linear-gradient(130deg,#A11425,#942157)',
+          background: 'linear-gradient(130deg,#A11425,#942157)',
           alignSelf: 'flex-start',
         };
       default:
