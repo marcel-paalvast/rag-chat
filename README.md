@@ -1,3 +1,5 @@
+[![Hack Together: Microsoft Graph and .NET](https://img.shields.io/badge/Microsoft-Hack--Together--RAG--Hack-8243C9?style=for-the-badge&logo=microsoft)](https://github.com/microsoft/RAG_Hack)
+
 # All Purpose RAG Chat
 
 ## Overview
@@ -7,6 +9,8 @@ At the core of this solution is an API allowing users to create an AI assisted c
 The API is a full Azure cloud-based application that comes with infrastructure and deployment scripts. Its easy to use API operations it's capable of allowing developer throughout an organisation to quickly implement RAG-based chat features using their own knowledge base without requiring deeper knowledge of its implementation.
 
 The solution also contains a sample web application in the form of a single page application allowing easy user access to start a conversation with any of the available assistants.
+
+https://github.com/user-attachments/assets/099015cc-6bef-4ad8-9b0f-3ae5e7e93903
 
 ### How it works
 
